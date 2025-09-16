@@ -1,0 +1,37 @@
+version: "3"
+services:
+  influxdb:
+    image: influxdb:2.7-alpine
+    hostname: ${DOCKER_INFLUXDB_HOST}
+    volumes:
+      - ./influxdb-storage:/var/lib/influxdb2:rw
+    restart: on-failure:10
+    ports:
+      - ${DOCKER_INFLUXDB_PORT}:8086
+    networks:
+      - tig-net
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    volumes:
+      - ./grafana-storage:/var/lib/grafana:rw
+    depends_on:
+      - influxdb
+    ports:
+      - ${DOCKER_GRAFANA_PORT}:3000
+    networks:
+      - tig-net
+
+  telegraf_iot_monitor:
+    image: telegraf:latest
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:rw
+    networks:
+      - tig-net
+      - nginx-net
+
+networks:
+  nginx-net:
+    external: true
+  tig-net:
+    external: true
